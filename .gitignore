@@ -3,6 +3,6 @@
 # Ignore all node_modules directories
 */node_modules/
 # Ignore all Python bytecode files
-**/__pycache__/
+**/**/__pycache__/
 # Allow the .gitignore file itself
 !.gitignore
