@@ -1,0 +1,49 @@
+fastapi==0.110.1
+uvicorn[standard]==0.29.0
+sqlalchemy==2.0.30
+python-dotenv==1.0.1
+presidio-analyzer==2.2.26
+openai==1.30.1
+psycopg2-binary==2.9.9
+
+
+# GuardPrompt Requirements
+# Core ML and NLP libraries
+torch>=2.0.0
+transformers>=4.35.0
+tokenizers>=0.14.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Hugging Face ecosystem
+huggingface-hub>=0.17.0
+safetensors>=0.3.0
+datasets>=2.14.0
+
+# Text processing and utilities
+regex>=2023.8.8
+sentencepiece>=0.1.99
+protobuf>=3.20.0
+
+# Performance and caching
+accelerate>=0.21.0
+optimum>=1.13.0
+
+# Data handling
+pandas>=2.0.0
+pyarrow>=12.0.0
+
+# Networking and API
+requests>=2.31.0
+urllib3>=2.0.0
+
+# Development and testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+black>=23.7.0
+flake8>=6.0.0
+
+python-docx
+bs4
+mammoth
+python-multipart

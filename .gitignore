@@ -1,0 +1,6 @@
+# Ignore all dotfiles and dotfolders in any directory
+**/.*
+
+# But allow the .gitignore file itself
+!.gitignore
+
