@@ -37,15 +37,6 @@ const Index = () => {
       color: "green"
     },
     {
-      id: "database-inspector",
-      name: "Database Inspector",
-      description: "Inspect database tables and content from connection strings",
-      icon: Database,
-      status: "active",
-      route: "/database-inspector",
-      color: "blue"
-    },
-    {
       id: "trustlens",
       name: "TrustLens",
       description: "Real-time trust scoring and monitoring",

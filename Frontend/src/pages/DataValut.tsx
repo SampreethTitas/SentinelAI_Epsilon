@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Database, Play, Clock, CheckCircle, XCircle, Trash2, Copy, RefreshCw } from "lucide-react";
+import { ArrowLeft, Database, Play, Clock, CheckCircle, XCircle, Trash2, Copy, RefreshCw, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -258,9 +258,6 @@ const DataValut = () => {
                 description: `Database creation started successfully`,
             });
 
-            // Clear form
-            setFilterPrompt("");
-
             // Connect to this operation's updates
             connectToJobUpdates(data.job_id);
 
@@ -370,6 +367,15 @@ const DataValut = () => {
                             </div>
                             <h1 className="text-2xl font-bold text-white">DataValut</h1>
                         </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate("/database-viewer")}
+                            className="flex items-center gap-2 text-white hover:text-gray-300"
+                        >
+                            <Eye className="w-4 h-4" />
+                            Database Viewer
+                        </Button>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -412,8 +418,7 @@ const DataValut = () => {
                                         Filter Prompt
                                     </label>
                                     <Textarea
-                                        placeholder="Describe what data you want to include in natural language...
-Example: 'Include only customer data from the last 6 months where the customer has made at least 3 purchases'"
+                                        placeholder="Send promotional email to customers from Canada."
                                         value={filterPrompt}
                                         onChange={(e) => setFilterPrompt(e.target.value)}
                                         rows={4}
@@ -518,18 +523,41 @@ Example: 'Include only customer data from the last 6 months where the customer h
                                                     <span className="text-xs text-green-300 font-medium">
                                                         PostgreSQL Connection String:
                                                     </span>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => copyToClipboard(currentOperation.result!.connection_string, "Connection string")}
-                                                        className="text-green-300 hover:text-green-200 hover:bg-green-800/30"
-                                                    >
-                                                        <Copy className="w-3 h-3 mr-1" />
-                                                        Copy
-                                                    </Button>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => copyToClipboard(currentOperation.result!.connection_string, "Connection string")}
+                                                            className="text-green-300 hover:text-green-200 hover:bg-green-800/30"
+                                                        >
+                                                            <Copy className="w-3 h-3 mr-1" />
+                                                            Copy
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => navigate(`/database-viewer?connection=${encodeURIComponent(currentOperation.result!.connection_string)}`)}
+                                                            className="text-green-300 hover:text-green-200 hover:bg-green-800/30 border border-green-500/50"
+                                                        >
+                                                            <Eye className="w-3 h-3 mr-1" />
+                                                            View Database
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                                 <div className="font-mono text-xs text-green-200 bg-green-900/20 p-2 rounded break-all">
                                                     {currentOperation.result.connection_string.replace(/:([^@]+)@/, ':****@')}
+                                                </div>
+
+                                                {/* Quick Access Button */}
+                                                <div className="mt-3 pt-2 border-t border-green-700/50">
+                                                    <Button
+                                                        onClick={() => navigate(`/database-viewer?connection=${encodeURIComponent(currentOperation.result!.connection_string)}`)}
+                                                        className="w-full bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500 hover:border-green-400 transition-all"
+                                                        size="sm"
+                                                    >
+                                                        <Eye className="w-4 h-4 mr-2" />
+                                                        Open Database Viewer
+                                                    </Button>
                                                 </div>
                                             </div>
                                         )}

@@ -157,7 +157,7 @@ class DataValut:
 
     def _filter_schema_with_gemini(self, full_schema: dict, prompt: str) -> dict:
         # ... (This function remains the same as before, with the improved prompt)
-        self._send_progress(0.55, "AI Analysis", "Preparing request for Gemini AI...")
+        self._send_progress(0.55, "AI Analysis", "Preparing request for  AI...")
         
         chat_prompt = f"""
 Given the database schema below and the task: "{prompt}", return only the necessary tables and columns in JSON format.
@@ -173,28 +173,28 @@ Full Database Schema:
 """
         try:
             print("🤖 Sending request to Gemini API...")
-            self._send_progress(0.6, "AI Processing", "Sending schema to Gemini AI for analysis...")
+            self._send_progress(0.6, "AI Processing", "Analyzing schema ...")
             
             response = self.model.generate_content(chat_prompt)
             
-            self._send_progress(0.7, "AI Response", "Processing Gemini AI response...")
+            self._send_progress(0.7, "AI Response", "Processing schema")
             res_clean = re.sub(r"```(json)?", "", response.text, flags=re.MULTILINE).strip()
             filtered_schema = json.loads(res_clean)
             if not isinstance(filtered_schema, dict):
                 print(f"❌ Gemini returned valid JSON, but not a dictionary (type: {type(filtered_schema)}).")
-                self._send_progress(0.7, "AI Error", "Gemini returned invalid response format")
+                self._send_progress(0.7, "AI Error", "An unexpected error occurred.")
                 return {}
             
-            self._send_progress(0.75, "AI Complete", f"Gemini successfully analyzed schema - {len(filtered_schema)} tables selected")
+            self._send_progress(0.75, "AI Complete", f"Successfully analyzed schema - {len(filtered_schema)} tables selected")
             return filtered_schema
         except json.JSONDecodeError as e:
             print(f"❌ Gemini response failed JSON parsing. Error: {e}")
             print(f"--- Raw Gemini Response ---\n{response.text}\n-------------------------")
-            self._send_progress(0.7, "AI Error", f"Failed to parse Gemini response: {str(e)}")
+            self._send_progress(0.7, "AI Error", f"Failed to parse  response: {str(e)}")
             return {}
         except Exception as e:
             print(f"❌ A critical error occurred while calling the Gemini API: {e}")
-            self._send_progress(0.7, "AI Error", f"Gemini API error: {str(e)}")
+            self._send_progress(0.7, "AI Error", f" API error: {str(e)}")
             return {}
 
     def _sanitize_schema(self, schema_from_ai: dict) -> dict:
