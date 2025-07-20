@@ -20,7 +20,7 @@ const Index = () => {
     },
     {
       id: "adshield",
-      name: "AdShield", 
+      name: "AdShield",
       description: "Marketing content analysis and compliance check",
       icon: Search,
       status: "active",
@@ -28,20 +28,29 @@ const Index = () => {
       color: "magenta"
     },
     {
-      id: "datavault",
-      name: "DataVault",
-      description: "Secure data storage and privacy management",
+      id: "datavalut",
+      name: "DataValut",
+      description: "Secure filtered database creation and management",
       icon: Database,
-      status: "coming-soon",
-      route: "#",
+      status: "active",
+      route: "/datavalut",
       color: "green"
+    },
+    {
+      id: "database-inspector",
+      name: "Database Inspector",
+      description: "Inspect database tables and content from connection strings",
+      icon: Database,
+      status: "active",
+      route: "/database-inspector",
+      color: "blue"
     },
     {
       id: "trustlens",
       name: "TrustLens",
       description: "Real-time trust scoring and monitoring",
       icon: Eye,
-      status: "coming-soon", 
+      status: "coming-soon",
       route: "#",
       color: "blue"
     }
@@ -57,7 +66,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 cyber-grid">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-r from-neon-teal/5 via-transparent to-neon-magenta/5"></div>
-      
+
       <div className="relative min-h-screen flex flex-col items-center justify-center p-8">
         {/* Header Section */}
         <div className="text-center mb-16 animate-fade-in">
@@ -122,16 +131,16 @@ const Index = () => {
                     ${isActive ? 'bg-' + (module.color === 'teal' ? 'neon-teal' : module.color === 'magenta' ? 'neon-magenta' : module.color === 'green' ? 'neon-green' : 'neon-blue') + '/20' : 'bg-gray-700/20'}
                     ${isHovered && isActive ? 'animate-glow-pulse' : ''}
                   `}>
-                    <Icon 
-                      size={32} 
+                    <Icon
+                      size={32}
                       className={
-                        isActive 
-                          ? module.color === 'teal' ? 'text-neon-teal' 
+                        isActive
+                          ? module.color === 'teal' ? 'text-neon-teal'
                             : module.color === 'magenta' ? 'text-neon-magenta'
-                            : module.color === 'green' ? 'text-neon-green'
-                            : 'text-neon-blue'
+                              : module.color === 'green' ? 'text-neon-green'
+                                : 'text-neon-blue'
                           : 'text-gray-500'
-                      } 
+                      }
                     />
                   </div>
 

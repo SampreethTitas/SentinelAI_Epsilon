@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import GuardPrompt from "./pages/GuardPrompt";
 import AdShield from "./pages/AdShield";
+import DataValut from "./pages/DataValut";
+import DatabaseInspector from "./pages/DatabaseInspector";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +23,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/guardprompt" element={<GuardPrompt />} />
           <Route path="/adshield" element={<AdShield />} />
+          <Route path="/datavalut" element={<DataValut />} />
+          <Route path="/database-inspector" element={<DatabaseInspector />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
