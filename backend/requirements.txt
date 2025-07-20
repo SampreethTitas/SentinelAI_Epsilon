@@ -47,3 +47,7 @@ python-docx
 bs4
 mammoth
 python-multipart
+
+google-generativeai
+python-dotenv
+psycopg2-binary

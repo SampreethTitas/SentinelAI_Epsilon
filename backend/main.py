@@ -20,13 +20,17 @@ from typing import List, Optional, Dict, Any
 import uvicorn
 import logging
 import time
-from datetime import datetime
 import json
+import uuid
+from datetime import datetime
 import os
 from contextlib import asynccontextmanager
+from enum import Enum
 
 # Import the GuardPrompt module
 from enhanced_guard_prompt import GuardPrompt, DetectionResult, ThreatLevel, AttackType
+# Import DataValut module
+from datavalut.valut import DataValut
 
 # Configure logging
 logging.basicConfig(
@@ -38,6 +42,8 @@ logger = logging.getLogger(__name__)
 # Global GuardPrompt instance
 guard_prompt = None
 
+# Job management system - REMOVED (keeping simple HTTP)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifespan - startup and shutdown"""
@@ -47,22 +53,30 @@ async def lifespan(app: FastAPI):
     global analyzer
     
     try:
-        # Initialize GuardPrompt instance
+        # Initialize GuardPrompt instance (optional for DataValut)
         logger.info("📥 Loading AI models...")
-        guard_prompt = GuardPrompt(confidence_threshold=0.7)
-        analyzer = AdShieldCore()
-        logger.info("✅ Models loaded successfully")
+        try:
+            guard_prompt = GuardPrompt(confidence_threshold=0.7)
+            analyzer = AdShieldCore()
+            logger.info("✅ Models loaded successfully")
+        except Exception as model_error:
+            logger.warning(f"⚠️ Models not loaded (DataValut will still work): {model_error}")
+            guard_prompt = None
+            analyzer = None
         
         yield
         
     except Exception as e:
-        logger.error(f"❌ Failed to initialize models: {e}")
-        raise
+        logger.error(f"❌ Failed to initialize: {e}")
+        # Don't raise - let the app start anyway for DataValut functionality
     finally:
         # Shutdown
         logger.info("🔄 Shutting down GuardPrompt API...")
-        if guard_prompt:
-            guard_prompt.clear_cache()
+        if guard_prompt and hasattr(guard_prompt, 'clear_cache'):
+            try:
+                guard_prompt.clear_cache()
+            except:
+                pass
         logger.info("✅ Shutdown complete")
 
 # Initialize FastAPI app
@@ -166,6 +180,27 @@ class ContentAnalysisRequest(BaseModel):
     content_type: Optional[str] = Field(None, description="Type of content (email, blog_post, social_media, etc.)")
     client_id: Optional[str] = Field("default", description="Client identifier for rate limiting")
 
+class DataValutRequest(BaseModel):
+    """Request model for creating filtered database"""
+    source_db_connection: str = Field(..., description="Source database connection string")
+    filter_prompt: str = Field(..., description="Natural language prompt to filter data", min_length=1)
+    
+    @validator('filter_prompt')
+    def validate_filter_prompt(cls, v):
+        if not v.strip():
+            raise ValueError('Filter prompt cannot be empty or whitespace only')
+        return v.strip()
+
+class DataValutResponse(BaseModel):
+    """Response model for filtered database creation"""
+    success: bool
+    message: str
+    database_details: Optional[Dict[str, Any]] = None
+    connection_string: Optional[str] = None
+    timestamp: str
+    processing_time: float
+    error: Optional[str] = None
+
 
 def get_analyzer():
     """Get or initialize the AdShield analyzer"""
@@ -236,7 +271,11 @@ async def root():
             "bulk_analyze": "/bulk-analyze",
             "stats": "/stats",
             "test": "/test",
-            "clear_cache": "/clear-cache"
+            "clear_cache": "/clear-cache",
+            "adshield_analyze": "/adshield/analyze",
+            "analyze_file": "/analyze/file",
+            "analyze_files": "/analyze/files",
+            "datavalut_create": "/datavalut/create-filtered-db"
         }
     }
 
@@ -699,6 +738,62 @@ async def analyze_multiple_files(files: List[UploadFile] = File(...), client_id:
         raise HTTPException(status_code=500, detail=f"Multiple file analysis failed: {str(e)}")
 
 
+@app.post("/datavalut/create-filtered-db", response_model=DataValutResponse)
+async def create_filtered_database(request: DataValutRequest):
+    """
+    Create a filtered database synchronously
+    
+    - **source_db_connection**: Source database connection string
+    - **filter_prompt**: Natural language description of what data to include
+    """
+    start_time = time.time()
+    
+    try:
+        logger.info(f"Creating filtered database with prompt: {request.filter_prompt[:100]}...")
+        
+        # Initialize DataValut instance
+        data_valut = DataValut(src_db_str=request.source_db_connection)
+        
+        # Create filtered database
+        db_details = data_valut.create_filtered_db(prompt=request.filter_prompt)
+        
+        if not db_details:
+            raise Exception("Database creation failed - check DataValut logs for details")
+        
+        # Create connection string
+        connection_string = f"postgresql://{db_details['user']}:{db_details['password']}@{db_details['host']}:{db_details['port']}/{db_details['dbname']}"
+        
+        # Remove password from stored result for security
+        safe_db_details = {k: v for k, v in db_details.items() if k != 'password'}
+        safe_db_details['password'] = "***REDACTED***"
+        
+        processing_time = time.time() - start_time
+        
+        logger.info(f"Database creation completed successfully in {processing_time:.2f}s: {db_details['dbname']}")
+        
+        return DataValutResponse(
+            success=True,
+            message=f"Successfully created filtered database: {db_details['dbname']}",
+            database_details=safe_db_details,
+            connection_string=connection_string,
+            timestamp=datetime.now().isoformat(),
+            processing_time=processing_time
+        )
+        
+    except Exception as e:
+        processing_time = time.time() - start_time
+        error_msg = str(e)
+        
+        logger.error(f"Database creation failed after {processing_time:.2f}s: {error_msg}")
+        
+        return DataValutResponse(
+            success=False,
+            message="Database creation failed",
+            timestamp=datetime.now().isoformat(),
+            processing_time=processing_time,
+            error=error_msg
+        )
+
 # Background tasks
 async def log_analysis_result(request_id: str, user_id: str, is_malicious: bool, threat_level: str):
     """Log analysis result for audit purposes"""
@@ -723,6 +818,18 @@ async def log_bulk_analysis_result(request_id: str, user_id: str, total_analyzed
     }
     
     logger.info(f"Bulk analysis logged: {json.dumps(log_entry)}")
+
+async def log_datavalut_creation(db_name: str, filter_prompt: str, success: bool):
+    """Log DataValut database creation"""
+    log_entry = {
+        "action": "datavalut_creation",
+        "database_name": db_name,
+        "filter_prompt": filter_prompt[:100] + "..." if len(filter_prompt) > 100 else filter_prompt,
+        "success": success,
+        "timestamp": datetime.now().isoformat()
+    }
+    
+    logger.info(f"DataValut creation logged: {json.dumps(log_entry)}")
 
 # Error handlers
 @app.exception_handler(HTTPException)
